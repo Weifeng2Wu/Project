@@ -1,0 +1,46 @@
+---
+title: "AB Test"
+author: "Weifeng Wu"
+date: "5/26/2022"
+output: pdf_document
+---
+
+```{r}
+library(plyr)
+library(ggplot2)
+library(scales)
+```
+
+```{r}
+abtest <- read.csv("ads_test.csv")
+head(abtest)
+is.null(abtest)
+
+ddply(abtest,
+      c("group"),
+      summarise,
+      rate = sum(clk)/length(clk))
+#Chi-square test
+chisq.test(abtest$group,abtest$clk)
+```
+Since p-value = 0.03913 < 0.05, we cannot reject null hypothesis, at a 0.05 significane level, we can conclude that Pid have a significant difference.
+```{r}
+abtest[,'day'] = strftime(abtest[,'timestamp'],"%D")
+summary <- ddply(abtest,
+                 c("day","group"),
+                 summarise,
+                 num=length(day),
+                 rate=sum(clk)/length(clk))
+head(summary)
+```
+
+```{r}
+
+ggplot(summary,aes(x=day,y=rate,col=group,group=factor(group),lty = group))+
+         geom_line(lwd=1)+
+   geom_point(size=4)+
+   geom_line(aes(y=rate,col=group))+
+  geom_text(aes(label = round(rate,3), vjust = 1.1, hjust = -0.5, angle = 45), show.legend = FALSE)+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
